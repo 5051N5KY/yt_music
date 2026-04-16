@@ -10,9 +10,13 @@
     <RootNamespace>YtMusic</RootNamespace>
     <!-- Per-monitor DPI awareness handled by ApplicationConfiguration.Initialize() -->
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationIcon>youtube.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="youtube.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
   </ItemGroup>
 

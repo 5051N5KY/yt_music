@@ -26,6 +26,7 @@ public class MainForm : Form
         _webView = new WebView2 { Dock = DockStyle.Fill };
 
         Text = "YouTube Music";
+        Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "youtube.ico"));
         MinimumSize = new Size(900, 600);
         Size = new Size(_settings.Width, _settings.Height);
 
