@@ -122,3 +122,17 @@ Then publish again. The EXE will be larger (~150 MB) but does not require .NET R
 - **WebView2** uses the system Edge/Chromium engine — no need to bundle a browser
 - User session works identically to Edge
 - The project is clean, minimal, and easy to maintain
+
+---
+
+## Author
+
+Made by **Sosinsky** — [github.com/5051N5KY/yt_music](https://github.com/5051N5KY/yt_music)
+
+---
+
+## Disclaimer
+
+YouTube Music, the YouTube logo, and all related trademarks are the property of **Google LLC**.  
+This project is an unofficial desktop wrapper and is **not affiliated with, endorsed by, or sponsored by Google or YouTube** in any way.  
+All rights to the YouTube Music service and its content belong to their respective owners.
