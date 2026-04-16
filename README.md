@@ -29,55 +29,39 @@ yt_music/
 | OS | Windows 10 / 11 (64-bit) |
 | .NET Runtime | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
 | WebView2 Runtime | Built into Windows 11 / Edge; [download here](https://developer.microsoft.com/microsoft-edge/webview2/) |
-| Visual Studio (build) | Visual Studio 2022 (Community or higher) |
+| Editor (optional) | [Visual Studio Code](https://code.visualstudio.com/) with the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension |
 
 > **Note:** WebView2 Runtime is **already installed** on every machine running Windows 11 or Microsoft Edge. No separate installation is needed on typical machines.
 
 ---
 
-## How to build the EXE in Visual Studio
+## How to build the EXE
 
-### 1. Open the project
+### Using Visual Studio Code
 
-1. Open **Visual Studio 2022**
-2. Click **File → Open → Project/Solution**
-3. Select the `YtMusic.sln` file
+1. Install [Visual Studio Code](https://code.visualstudio.com/) and the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension
+2. Open the `yt_music` folder in VS Code
+3. NuGet packages restore automatically (or run `dotnet restore` in the terminal)
 
-### 2. Restore NuGet packages
+**Run (debug):**
 
-Visual Studio does this automatically on first open.  
-You can also right-click the project → **Restore NuGet Packages**.
+Press **F5** — VS Code will build and launch the app.
 
-Required NuGet package:
-- `Microsoft.Web.WebView2` (version `1.0.2849.39` or newer)
-
-### 3. Build Debug version (for testing)
-
-1. Set configuration to **Debug** (top toolbar)
-2. Press **F5** or click **Debug → Start Debugging**
-3. The app should launch and load `https://music.youtube.com`
-
-### 4. Build Release version (for distribution)
-
-**Option A – standard build (requires .NET Runtime on the target machine):**
-
-1. Switch configuration to **Release**
-2. Click **Build → Build Solution** (Ctrl+Shift+B)
-3. EXE will be in: `YtMusic\bin\Release\net8.0-windows\YtMusic.exe`
-
-**Option B – single EXE (publish, recommended):**
-
-1. Right-click the `YtMusic` project → **Publish...**
-2. Select the `win-x64` profile (or create a new one: Folder → Next → Finish)
-3. Click **Publish**
-4. EXE will be in: `publish\YtMusic.exe`
-
-**Option C – from the command line:**
+**Build Release:**
 
 ```bash
-cd YtMusic
-dotnet publish -p:PublishProfile=win-x64
+dotnet build -c Release
 ```
+
+EXE will be in: `YtMusic\bin\Release\net8.0-windows\YtMusic.exe`
+
+**Publish — single self-contained EXE (recommended):**
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained
+```
+
+EXE will be in: `YtMusic\bin\Release\net8.0-windows\win-x64\publish\YtMusic.exe`
 
 ---
 
