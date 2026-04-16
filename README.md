@@ -13,11 +13,12 @@ yt_music/
 └── YtMusic/
     ├── YtMusic.csproj                   # Project file (.NET 8, WinForms)
     ├── Program.cs                       # Application entry point
-    ├── MainForm.cs                      # Main window with WebView2
+    ├── MainForm.cs                      # Main window with WebView2 + custom title bar
     ├── WindowSettings.cs                # Save/restore window size and position
+    ├── youtube.ico                      # Application icon
     └── Properties/
         └── PublishProfiles/
-            └── win-x64.pubxml           # Publish profile: single EXE (x64)
+            └── win-x64.pubxml           # Publish profile: single self-contained EXE (x64)
 ```
 
 ---
@@ -27,7 +28,7 @@ yt_music/
 | Component | Requirement |
 |---|---|
 | OS | Windows 10 / 11 (64-bit) |
-| .NET Runtime | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| .NET Runtime | Only needed for Debug/development. The published EXE is self-contained — no runtime required. |
 | WebView2 Runtime | Built into Windows 11 / Edge; [download here](https://developer.microsoft.com/microsoft-edge/webview2/) |
 | Editor (optional) | [Visual Studio Code](https://code.visualstudio.com/) with the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension |
 
@@ -58,38 +59,24 @@ EXE will be in: `YtMusic\bin\Release\net8.0-windows\YtMusic.exe`
 **Publish — single self-contained EXE (recommended):**
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained
+dotnet publish YtMusic/YtMusic.csproj -p:PublishProfile=win-x64
 ```
 
-EXE will be in: `YtMusic\bin\Release\net8.0-windows\win-x64\publish\YtMusic.exe`
-
----
-
-## How to get a fully self-contained EXE (no .NET Runtime required)
-
-In `YtMusic/Properties/PublishProfiles/win-x64.pubxml` change:
-
-```xml
-<SelfContained>false</SelfContained>
-```
-to:
-```xml
-<SelfContained>true</SelfContained>
-```
-
-Then publish again. The EXE will be larger (~150 MB) but does not require .NET Runtime to be installed.
+EXE will be in: `C:\Users\<you>\publish\YtMusic.exe` — no .NET Runtime required on the target machine.
 
 ---
 
 ## How the app works
 
 - On launch, a window opens with `https://music.youtube.com` loaded
+- **Custom title bar** in Windows accent color with minimize / maximize / close buttons
+- **System tray icon** — right-click for menu: Przywróć / Minimalizuj / Dark Mode / Light Mode / Zamknij
 - **User session** (login, cookies, localStorage) is preserved between launches  
   (data stored in `%APPDATA%\YtMusic\WebView2\`)
 - **Window size and position** are remembered after closing  
   (saved in `%APPDATA%\YtMusic\settings.json`)
 - Default size: **1200×800**, minimum: **900×600**
-- Supports: closing, minimizing, maximizing, and resizing
+- Supports resizing from all edges and corners
 - If WebView2 Runtime is not installed, a clear message with instructions is shown
 
 ---
