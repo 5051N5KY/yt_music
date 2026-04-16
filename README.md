@@ -1,78 +1,78 @@
 # YouTube Music Desktop
 
-Minimalistyczny wrapper desktopowy dla [YouTube Music](https://music.youtube.com) na Windows.  
-Zbudowany w **C# + WinForms + Microsoft WebView2**. Lekka alternatywa dla Electrona.
+A minimalist desktop wrapper for [YouTube Music](https://music.youtube.com) on Windows.  
+Built with **C# + WinForms + Microsoft WebView2**. A lightweight alternative to Electron.
 
 ---
 
-## Struktura projektu
+## Project structure
 
 ```
 yt_music/
-├── YtMusic.sln                          # Plik rozwiązania Visual Studio
+├── YtMusic.sln                          # Visual Studio solution file
 └── YtMusic/
-    ├── YtMusic.csproj                   # Plik projektu (.NET 8, WinForms)
-    ├── Program.cs                       # Punkt wejścia aplikacji
-    ├── MainForm.cs                      # Główne okno z WebView2
-    ├── WindowSettings.cs                # Zapis/odczyt rozmiaru i pozycji okna
+    ├── YtMusic.csproj                   # Project file (.NET 8, WinForms)
+    ├── Program.cs                       # Application entry point
+    ├── MainForm.cs                      # Main window with WebView2
+    ├── WindowSettings.cs                # Save/restore window size and position
     └── Properties/
         └── PublishProfiles/
-            └── win-x64.pubxml           # Profil publikacji: pojedynczy EXE (x64)
+            └── win-x64.pubxml           # Publish profile: single EXE (x64)
 ```
 
 ---
 
-## Wymagania
+## Requirements
 
-| Składnik | Wymaganie |
+| Component | Requirement |
 |---|---|
-| System | Windows 10 / 11 (64-bit) |
+| OS | Windows 10 / 11 (64-bit) |
 | .NET Runtime | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| WebView2 Runtime | Wbudowany w Windows 11 / Edge; [pobierz tutaj](https://developer.microsoft.com/microsoft-edge/webview2/) |
-| Visual Studio (build) | Visual Studio 2022 (Community lub wyżej) |
+| WebView2 Runtime | Built into Windows 11 / Edge; [download here](https://developer.microsoft.com/microsoft-edge/webview2/) |
+| Visual Studio (build) | Visual Studio 2022 (Community or higher) |
 
-> **Uwaga:** WebView2 Runtime jest **już zainstalowany** na każdym komputerze z Windows 11 lub Microsoft Edge. Nie trzeba go osobno instalować na typowych maszynach.
+> **Note:** WebView2 Runtime is **already installed** on every machine running Windows 11 or Microsoft Edge. No separate installation is needed on typical machines.
 
 ---
 
-## Jak zbudować EXE w Visual Studio
+## How to build the EXE in Visual Studio
 
-### 1. Otwórz projekt
+### 1. Open the project
 
-1. Otwórz **Visual Studio 2022**
-2. Kliknij **File → Open → Project/Solution**
-3. Wybierz plik `YtMusic.sln`
+1. Open **Visual Studio 2022**
+2. Click **File → Open → Project/Solution**
+3. Select the `YtMusic.sln` file
 
-### 2. Przywróć pakiety NuGet
+### 2. Restore NuGet packages
 
-Visual Studio zrobi to automatycznie przy pierwszym otwarciu.  
-Możesz też kliknąć prawym przyciskiem na projekt → **Restore NuGet Packages**.
+Visual Studio does this automatically on first open.  
+You can also right-click the project → **Restore NuGet Packages**.
 
-Wymagany pakiet NuGet:
-- `Microsoft.Web.WebView2` (wersja `1.0.2849.39` lub nowsza)
+Required NuGet package:
+- `Microsoft.Web.WebView2` (version `1.0.2849.39` or newer)
 
-### 3. Zbuduj wersję Debug (testowa)
+### 3. Build Debug version (for testing)
 
-1. Ustaw konfigurację na **Debug** (górny pasek)
-2. Naciśnij **F5** lub kliknij **Debug → Start Debugging**
-3. Aplikacja powinna się uruchomić i załadować `https://music.youtube.com`
+1. Set configuration to **Debug** (top toolbar)
+2. Press **F5** or click **Debug → Start Debugging**
+3. The app should launch and load `https://music.youtube.com`
 
-### 4. Zbuduj wersję Release (do dystrybucji)
+### 4. Build Release version (for distribution)
 
-**Opcja A – standardowy build (wymaga .NET Runtime na docelowej maszynie):**
+**Option A – standard build (requires .NET Runtime on the target machine):**
 
-1. Zmień konfigurację na **Release**
-2. Kliknij **Build → Build Solution** (Ctrl+Shift+B)
-3. EXE znajdziesz w: `YtMusic\bin\Release\net8.0-windows\YtMusic.exe`
+1. Switch configuration to **Release**
+2. Click **Build → Build Solution** (Ctrl+Shift+B)
+3. EXE will be in: `YtMusic\bin\Release\net8.0-windows\YtMusic.exe`
 
-**Opcja B – pojedynczy EXE (publish, zalecane):**
+**Option B – single EXE (publish, recommended):**
 
-1. Kliknij prawym przyciskiem na projekt `YtMusic` → **Publish...**
-2. Wybierz profil `win-x64` (lub stwórz nowy: Folder → Next → Finish)
-3. Kliknij **Publish**
-4. EXE znajdziesz w: `publish\YtMusic.exe`
+1. Right-click the `YtMusic` project → **Publish...**
+2. Select the `win-x64` profile (or create a new one: Folder → Next → Finish)
+3. Click **Publish**
+4. EXE will be in: `publish\YtMusic.exe`
 
-**Opcja C – z linii poleceń:**
+**Option C – from the command line:**
 
 ```bash
 cd YtMusic
@@ -81,44 +81,44 @@ dotnet publish -p:PublishProfile=win-x64
 
 ---
 
-## Jak uzyskać w pełni samodzielny EXE (bez wymagania .NET Runtime)
+## How to get a fully self-contained EXE (no .NET Runtime required)
 
-W pliku `YtMusic/Properties/PublishProfiles/win-x64.pubxml` zmień:
+In `YtMusic/Properties/PublishProfiles/win-x64.pubxml` change:
 
 ```xml
 <SelfContained>false</SelfContained>
 ```
-na:
+to:
 ```xml
 <SelfContained>true</SelfContained>
 ```
 
-Następnie opublikuj ponownie. EXE będzie większy (~150 MB), ale nie wymaga instalacji .NET Runtime.
+Then publish again. The EXE will be larger (~150 MB) but does not require .NET Runtime to be installed.
 
 ---
 
-## Działanie aplikacji
+## How the app works
 
-- Przy uruchomieniu otwiera się okno z załadowaną stroną `https://music.youtube.com`
-- **Sesja użytkownika** (logowanie, cookies, localStorage) jest zachowywana między uruchomieniami  
-  (dane przechowywane w `%APPDATA%\YtMusic\WebView2\`)
-- **Rozmiar i pozycja okna** są zapamiętywane po zamknięciu  
-  (zapisywane w `%APPDATA%\YtMusic\settings.json`)
-- Domyślny rozmiar: **1200×800**, minimalny: **900×600**
-- Obsługiwane: zamykanie, minimalizacja, maksymalizacja, zmiana rozmiaru
-- Jeśli WebView2 Runtime nie jest zainstalowany, wyświetlany jest czytelny komunikat z instrukcją
+- On launch, a window opens with `https://music.youtube.com` loaded
+- **User session** (login, cookies, localStorage) is preserved between launches  
+  (data stored in `%APPDATA%\YtMusic\WebView2\`)
+- **Window size and position** are remembered after closing  
+  (saved in `%APPDATA%\YtMusic\settings.json`)
+- Default size: **1200×800**, minimum: **900×600**
+- Supports: closing, minimizing, maximizing, and resizing
+- If WebView2 Runtime is not installed, a clear message with instructions is shown
 
 ---
 
-## Dlaczego WinForms + WebView2?
+## Why WinForms + WebView2?
 
-| Technologia | Rozmiar | Złożoność | Szybkość startu |
+| Technology | Size | Complexity | Startup speed |
 |---|---|---|---|
-| **WebView2 + WinForms** (to rozwiązanie) | ~5 MB EXE | Minimalna | Szybki |
-| Electron | ~150 MB | Wysoka | Wolny |
-| CEFSharp + WinForms | ~100 MB | Średnia | Średni |
+| **WebView2 + WinForms** (this solution) | ~5 MB EXE | Minimal | Fast |
+| Electron | ~150 MB | High | Slow |
+| CEFSharp + WinForms | ~100 MB | Medium | Medium |
 
-- **WinForms** jest prostszy niż WPF dla tego przypadku użycia (jedno okno, jeden control)
-- **WebView2** używa systemowego silnika Edge/Chromium – brak konieczności bundlowania przeglądarki
-- Sesja użytkownika działa identycznie jak w Edge
-- Projekt jest czytelny, minimalny i łatwy do utrzymania
+- **WinForms** is simpler than WPF for this use case (single window, single control)
+- **WebView2** uses the system Edge/Chromium engine — no need to bundle a browser
+- User session works identically to Edge
+- The project is clean, minimal, and easy to maintain

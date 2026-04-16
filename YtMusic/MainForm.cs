@@ -67,7 +67,7 @@ public class MainForm : Form
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Nieoczekiwany błąd podczas uruchamiania:\n{ex.Message}",
+                $"Unexpected error during startup:\n{ex.Message}",
                 "YouTube Music",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
@@ -92,11 +92,11 @@ public class MainForm : Form
     private static void ShowWebView2MissingError()
     {
         MessageBox.Show(
-            "Nie znaleziono Microsoft WebView2 Runtime.\n\n" +
-            "Pobierz i zainstaluj WebView2 Runtime ze strony:\n" +
+            "Microsoft WebView2 Runtime was not found.\n\n" +
+            "Download and install WebView2 Runtime from:\n" +
             "https://developer.microsoft.com/microsoft-edge/webview2/\n\n" +
-            "Po instalacji uruchom aplikację ponownie.",
-            "YouTube Music – brak WebView2",
+            "After installation, restart the application.",
+            "YouTube Music – WebView2 missing",
             MessageBoxButtons.OK,
             MessageBoxIcon.Warning);
         Application.Exit();
