@@ -7,21 +7,30 @@ namespace YtMusic;
 
 public class MainForm : Form
 {
-    private readonly WebView2 _webView;
+    private readonly WebView2       _webView;
     private readonly WindowSettings _settings;
-    private readonly NotifyIcon _trayIcon;
+    private readonly NotifyIcon     _trayIcon;
+    private Button? _btnMax;
 
-    [DllImport("user32.dll")]
-    private static extern bool ReleaseCapture();
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern bool   ReleaseCapture();
+    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
     private const int WM_NCLBUTTONDOWN = 0xA1;
-    private const int HT_CAPTION       = 2;
+    private const int HT_CAPTION       = 0x2;
+    private const int WM_NCCALCSIZE    = 0x83;
+    private const int WM_NCHITTEST     = 0x84;
+    private const int WM_NCLBUTTONUP   = 0xA2;
+    private const int HTMAXBUTTON      = 9;
+    private const int HTLEFT           = 10;
+    private const int HTRIGHT          = 11;
+    private const int HTTOP            = 12;
+    private const int HTTOPLEFT        = 13;
+    private const int HTTOPRIGHT       = 14;
+    private const int HTBOTTOM         = 15;
+    private const int HTBOTTOMLEFT     = 16;
+    private const int HTBOTTOMRIGHT    = 17;
+    private const int ResizeBorder     = 6;
 
-    // WebView2 user data folder — stores cookies, localStorage, session data.
-    // This ensures the user stays logged in between launches.
     private static readonly string UserDataFolder = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "YtMusic", "WebView2");
@@ -75,12 +84,12 @@ public class MainForm : Form
         var btnClose = MakeTitleButton("", accentColor, Color.FromArgb(232, 17, 35));
         btnClose.Click += (_, _) => Application.Exit();
 
-        var btnMax = MakeTitleButton("", accentColor, hoverAccent);
-        btnMax.Click += (_, _) =>
+        _btnMax = MakeTitleButton("", accentColor, hoverAccent);
+        _btnMax.Click += (_, _) =>
         {
             WindowState = WindowState == FormWindowState.Maximized
                 ? FormWindowState.Normal : FormWindowState.Maximized;
-            btnMax.Text = WindowState == FormWindowState.Maximized ? "" : "";
+            _btnMax.Text = WindowState == FormWindowState.Maximized ? "" : "";
         };
 
         var btnMin = MakeTitleButton("", accentColor, hoverAccent);
@@ -90,10 +99,10 @@ public class MainForm : Form
         // first added among Right-docked = rightmost position
         titleBar.Controls.Add(lblTitle);
         titleBar.Controls.Add(btnMin);
-        titleBar.Controls.Add(btnMax);
+        titleBar.Controls.Add(_btnMax);
         titleBar.Controls.Add(btnClose);
         btnClose.Dock = DockStyle.Right;
-        btnMax.Dock   = DockStyle.Right;
+        _btnMax.Dock  = DockStyle.Right;
         btnMin.Dock   = DockStyle.Right;
 
         // Dragging — send WM_NCLBUTTONDOWN HT_CAPTION to let Windows handle the move
@@ -134,39 +143,75 @@ public class MainForm : Form
         FormClosing += OnFormClosing;
     }
 
-    // ── Resize support for borderless window ────────────────────────────
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            var cp = base.CreateParams;
+            cp.Style |= 0x00C00000 | 0x00040000; // WS_CAPTION | WS_THICKFRAME - enables Snap
+            return cp;
+        }
+    }
+
     protected override void WndProc(ref Message m)
     {
-        const int WM_NCHITTEST  = 0x84;
-        const int HTLEFT        = 10;
-        const int HTRIGHT       = 11;
-        const int HTTOP         = 12;
-        const int HTTOPLEFT     = 13;
-        const int HTTOPRIGHT    = 14;
-        const int HTBOTTOM      = 15;
-        const int HTBOTTOMLEFT  = 16;
-        const int HTBOTTOMRIGHT = 17;
-        const int border        = 6;
+        if (m.Msg == WM_NCCALCSIZE && m.WParam != IntPtr.Zero)
+        {
+            m.Result = IntPtr.Zero;
+            return;
+        }
+
+        if (m.Msg == WM_NCLBUTTONUP && m.WParam.ToInt32() == HTMAXBUTTON)
+        {
+            ToggleMaximize();
+            return;
+        }
 
         base.WndProc(ref m);
 
-        if (m.Msg == WM_NCHITTEST && WindowState == FormWindowState.Normal)
-        {
-            var c    = PointToClient(Cursor.Position);
-            bool l   = c.X < border;
-            bool r   = c.X >= ClientSize.Width  - border;
-            bool t   = c.Y < border;
-            bool bot = c.Y >= ClientSize.Height - border;
+        if (m.Msg == WM_NCHITTEST)
+            HandleHitTest(ref m);
+    }
 
-            if      (t   && l) m.Result = (IntPtr)HTTOPLEFT;
-            else if (t   && r) m.Result = (IntPtr)HTTOPRIGHT;
-            else if (bot && l) m.Result = (IntPtr)HTBOTTOMLEFT;
-            else if (bot && r) m.Result = (IntPtr)HTBOTTOMRIGHT;
-            else if (l)        m.Result = (IntPtr)HTLEFT;
-            else if (r)        m.Result = (IntPtr)HTRIGHT;
-            else if (t)        m.Result = (IntPtr)HTTOP;
-            else if (bot)      m.Result = (IntPtr)HTBOTTOM;
+    private void HandleHitTest(ref Message m)
+    {
+        if (_btnMax is { IsHandleCreated: true })
+        {
+            var pt = new Point((short)(m.LParam.ToInt32() & 0xFFFF), (short)(m.LParam.ToInt32() >> 16));
+            if (_btnMax.RectangleToScreen(_btnMax.ClientRectangle).Contains(pt))
+            {
+                m.Result = (IntPtr)HTMAXBUTTON;
+                return;
+            }
         }
+
+        if (WindowState != FormWindowState.Normal) return;
+
+        var c    = PointToClient(Cursor.Position);
+        bool l   = c.X < ResizeBorder;
+        bool r   = c.X >= ClientSize.Width  - ResizeBorder;
+        bool t   = c.Y < ResizeBorder;
+        bool bot = c.Y >= ClientSize.Height - ResizeBorder;
+
+        m.Result = (l, r, t, bot) switch
+        {
+            (true,  _,    true,  _   ) => (IntPtr)HTTOPLEFT,
+            (_,     true, true,  _   ) => (IntPtr)HTTOPRIGHT,
+            (true,  _,    _,     true) => (IntPtr)HTBOTTOMLEFT,
+            (_,     true, _,     true) => (IntPtr)HTBOTTOMRIGHT,
+            (true,  _,    _,     _   ) => (IntPtr)HTLEFT,
+            (_,     true, _,     _   ) => (IntPtr)HTRIGHT,
+            (_,     _,    true,  _   ) => (IntPtr)HTTOP,
+            (_,     _,    _,     true) => (IntPtr)HTBOTTOM,
+            _                          => m.Result
+        };
+    }
+
+    private void ToggleMaximize()
+    {
+        WindowState = WindowState == FormWindowState.Maximized
+            ? FormWindowState.Normal
+            : FormWindowState.Maximized;
     }
 
     private static Button MakeTitleButton(string text, Color baseColor, Color hoverColor)
@@ -197,15 +242,17 @@ public class MainForm : Form
         {
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");
             if (key?.GetValue("AccentColor") is int argb)
-            {
-                byte r = (byte)( argb        & 0xFF);
-                byte g = (byte)((argb >>  8) & 0xFF);
-                byte b = (byte)((argb >> 16) & 0xFF);
-                return Color.FromArgb(255, r, g, b);
-            }
+                return Color.FromArgb(255, (byte)(argb & 0xFF), (byte)(argb >> 8 & 0xFF), (byte)(argb >> 16 & 0xFF));
         }
         catch { }
-        return Color.FromArgb(26, 26, 26); // dark fallback
+        return Color.FromArgb(26, 26, 26);
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (_btnMax != null)
+            _btnMax.Text = WindowState == FormWindowState.Maximized ? "" : "";
     }
 
     private void RestoreWindow()
@@ -224,30 +271,30 @@ public class MainForm : Form
 
     private async void OnLoad(object? sender, EventArgs e)
     {
-        // Restore maximized state after the window is shown to avoid positioning issues
         if (_settings.IsMaximized)
             WindowState = FormWindowState.Maximized;
 
         try
         {
-            var env = await CoreWebView2Environment.CreateAsync(
-                browserExecutableFolder: null,
-                userDataFolder: UserDataFolder);
-
+            var env = await CoreWebView2Environment.CreateAsync(null, UserDataFolder);
             await _webView.EnsureCoreWebView2Async(env);
             _webView.Source = new Uri("https://music.youtube.com");
         }
         catch (WebView2RuntimeNotFoundException)
         {
-            ShowWebView2MissingError();
+            MessageBox.Show(
+                "Microsoft WebView2 Runtime was not found.\n\n" +
+                "Download it from:\nhttps://developer.microsoft.com/microsoft-edge/webview2/\n\n" +
+                "After installation, restart the application.",
+                "YouTube Music – WebView2 missing",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            Application.Exit();
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
-                $"Unexpected error during startup:\n{ex.Message}",
-                "YouTube Music",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+            MessageBox.Show($"Unexpected error during startup:\n{ex.Message}",
+                "YouTube Music", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Application.Exit();
         }
     }
@@ -256,28 +303,14 @@ public class MainForm : Form
     {
         _trayIcon.Visible = false;
 
-        // Save size/position only when the window is in normal (non-maximized) state
         if (WindowState == FormWindowState.Normal)
         {
-            _settings.X = Location.X;
-            _settings.Y = Location.Y;
-            _settings.Width = Size.Width;
+            _settings.X      = Location.X;
+            _settings.Y      = Location.Y;
+            _settings.Width  = Size.Width;
             _settings.Height = Size.Height;
         }
         _settings.IsMaximized = WindowState == FormWindowState.Maximized;
         _settings.Save();
-    }
-
-    private static void ShowWebView2MissingError()
-    {
-        MessageBox.Show(
-            "Microsoft WebView2 Runtime was not found.\n\n" +
-            "Download and install WebView2 Runtime from:\n" +
-            "https://developer.microsoft.com/microsoft-edge/webview2/\n\n" +
-            "After installation, restart the application.",
-            "YouTube Music – WebView2 missing",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Warning);
-        Application.Exit();
     }
 }
